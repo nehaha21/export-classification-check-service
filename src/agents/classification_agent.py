@@ -12,7 +12,7 @@ The agent does not implement retrieval itself.
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 
-from .prompts.classification_prompt import (
+from .prompt.classification_prompt import (
     CLASSIFICATION_SYSTEM_PROMPT,
     PROMPT_VERSION,
 )
