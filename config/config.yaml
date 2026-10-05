@@ -1,0 +1,31 @@
+service:
+  name: export-classification-check-service
+  version: "0.1.0"
+
+agent:
+  max_attempts: 2
+  max_tool_calls: 4
+
+reliability:
+  retry:
+    max_attempts: 3
+    initial_delay_seconds: 0.5
+    max_delay_seconds: 4.0
+    backoff_multiplier: 2.0
+
+  timeout:
+    seconds: 30
+
+  circuit_breaker:
+    failure_threshold: 3
+    recovery_timeout_seconds: 30
+
+monitoring:
+  metrics_enabled: true
+  tracing_enabled: true
+  structured_logging: true
+
+guardrails:
+  injection_detection_enabled: true
+  output_filter_enabled: true
+  toxicity_detection_enabled: true
