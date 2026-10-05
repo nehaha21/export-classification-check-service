@@ -70,8 +70,8 @@ class ClassificationAgent:
         """
         Extract the request fields required for classification.
 
-        The request-field lookup is deliberately delegated to the retrieval
-        interface rather than reading Person 3's implementation directly.
+        The request-field lookup is delegated to the retrieval interface
+        rather than reading the retrieval implementation directly.
         """
         return self.tools.get_request_fields(request)
 
@@ -127,8 +127,7 @@ Return the requested structured classification information.
         """
         Ask the model for a proposed classification using retrieved evidence.
 
-        Verification is intentionally handled separately by the verification
-        agent.
+        Verification is handled separately by the verification agent.
         """
         request_fields = self.identify_request(request)
 
