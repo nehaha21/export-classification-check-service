@@ -8,9 +8,12 @@ An unsupported or unverifiable answer must not be treated as a valid result.
 """
 
 from dataclasses import dataclass
-from typing import Any, Protocol
+from typing import Protocol
 
-from .prompt.classification_prompt import PROMPT_VERSION
+from .prompt.verification_prompt import (
+    PROMPT_VERSION,
+    VERIFICATION_SYSTEM_PROMPT,
+)
 from .tools import RetrievedPassage
 
 
@@ -24,37 +27,6 @@ class ModelClient(Protocol):
         user_prompt: str,
     ) -> str:
         ...
-
-
-VERIFICATION_SYSTEM_PROMPT = """
-You are the verification agent for the Export Classification Check Service.
-
-Your responsibility is to verify a proposed classification against the
-retrieved passages provided to you.
-
-Check all of the following:
-
-1. The proposed classification is supported by retrieved text.
-2. The cited passages actually contain the evidence claimed by the proposal.
-3. The stated GRI rule is supported by the retrieved evidence.
-4. Any cited heading is present in the retrieved evidence.
-5. Applicable section or chapter notes used by the proposal are supported.
-6. The answer does not rely on facts or tariff provisions that were not
-   retrieved.
-
-A citation is valid only when it resolves to one of the supplied passages.
-
-If the evidence does not support the proposed answer, mark verification as
-failed. Do not make up missing evidence and do not approve an unsupported
-classification.
-
-Return:
-- verified: true or false
-- supported_claims
-- unsupported_claims
-- invalid_citations
-- reason
-""".strip()
 
 
 @dataclass
