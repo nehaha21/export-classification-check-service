@@ -23,6 +23,11 @@ from .classification_agent import ClassificationAgent
 from .tools import RetrievedPassage
 from .verification_agent import VerificationAgent
 
+from ..classification.routing import (
+    CLEAR_FOR_FILING,
+    SEEK_PRODUCT_CLARIFICATION,
+    SPECIALIST_CLASSIFICATION_REVIEW,
+)
 
 @dataclass
 class AgentRunResult:
@@ -83,14 +88,14 @@ class ClassificationGraph:
 
         if not article:
             return AgentRunResult(
-                status="seek-product-clarification",
+                status=SEEK_PRODUCT_CLARIFICATION,
                 tool_calls=tool_calls,
                 escalation_reason="No product description was provided.",
             )
 
         if tool_calls >= self.max_tool_calls:
             return AgentRunResult(
-                status="specialist-classification-review",
+                status=SPECIALIST_CLASSIFICATION_REVIEW,
                 tool_calls=tool_calls,
                 escalation_reason="Tool-call limit reached before retrieval.",
             )
@@ -122,7 +127,7 @@ class ClassificationGraph:
 
             if self._verification_passed(verification_result):
                 return AgentRunResult(
-                    status="clear-for-filing",
+                    status=CLEAR_FOR_FILING,
                     proposed_answer=proposed_answer,
                     verification_result=verification_result,
                     passages=passages,
