@@ -60,3 +60,18 @@ class FeedbackStore:
             for record in self.records
             if record.correlation_id == correlation_id
         ]
+    
+    def outcome_counts(self) -> dict[str, int]:
+        """Return the number of feedback records for each outcome."""
+
+        counts: dict[str, int] = {}
+
+        for record in self.records:
+            counts[record.outcome] = counts.get(record.outcome, 0) + 1
+
+        return counts
+
+    def total_feedback(self) -> int:
+        """Return the total number of feedback records."""
+
+        return len(self.records)
