@@ -10,11 +10,22 @@ An unsupported or unverifiable answer must not be treated as a valid result.
 from dataclasses import dataclass
 from typing import Protocol
 
-from .PROMPT.verification_prompt import (
-    PROMPT_VERSION,
-    VERIFICATION_SYSTEM_PROMPT,
-)
-from .tools import RetrievedPassage
+from ..tools import RetrievedPassage
+
+
+PROMPT_VERSION = "verification-v1"
+
+
+VERIFICATION_SYSTEM_PROMPT = """
+You are the verification agent for the Export Classification Check Service.
+
+Your task is to verify that a proposed classification is supported by the
+retrieved passages supplied to you.
+
+Do not use outside knowledge.
+Do not invent tariff provisions or supporting facts.
+An important unsupported claim or invalid citation must cause verification to fail.
+"""
 
 
 class ModelClient(Protocol):
