@@ -29,3 +29,6 @@ guardrails:
   injection_detection_enabled: true
   output_filter_enabled: true
   toxicity_detection_enabled: true
+
+load_testing:
+  p95_slo_seconds: 30
