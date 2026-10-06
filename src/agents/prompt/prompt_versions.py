@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from .classification_prompt import (
     CLASSIFICATION_SYSTEM_PROMPT,
+    CLASSIFICATION_SYSTEM_PROMPT_V2,
     PROMPT_VERSION as CLASSIFICATION_PROMPT_VERSION,
 )
 from .verification_prompt import (
@@ -29,6 +30,12 @@ CLASSIFICATION_PROMPT = PromptVersion(
     template=CLASSIFICATION_SYSTEM_PROMPT,
 )
 
+CLASSIFICATION_PROMPT_V2 = PromptVersion(
+    name="classification",
+    version="classification-v2",
+    template=CLASSIFICATION_SYSTEM_PROMPT_V2,
+)
+
 VERIFICATION_PROMPT = PromptVersion(
     name="verification",
     version=VERIFICATION_PROMPT_VERSION,
@@ -38,6 +45,7 @@ VERIFICATION_PROMPT = PromptVersion(
 
 PROMPT_REGISTRY = {
     CLASSIFICATION_PROMPT.version: CLASSIFICATION_PROMPT,
+    CLASSIFICATION_PROMPT_V2.version: CLASSIFICATION_PROMPT_V2,
     VERIFICATION_PROMPT.version: VERIFICATION_PROMPT,
 }
 
