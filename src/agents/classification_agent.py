@@ -17,6 +17,9 @@ from .prompt.classification_prompt import (
     PROMPT_VERSION,
 )
 from .tools import ClassificationTools, RetrievedPassage
+from src.guardrails.injection import InjectionGuard
+from src.guardrails.output_filter import OutputFilter
+from src.guardrails.toxicity import ToxicityGuard
 
 
 class ModelClient(Protocol):
@@ -62,6 +65,9 @@ class ClassificationAgent:
     ) -> None:
         self.tools = tools
         self.model = model
+        self.injection_guard = InjectionGuard()
+        self.output_filter = OutputFilter()
+        self.toxicity_guard = ToxicityGuard()
 
     def identify_request(
         self,
@@ -131,12 +137,30 @@ Return the requested structured classification information.
         """
         request_fields = self.identify_request(request)
 
+        injection_result = self.injection_guard.check_fields(request_fields)
+        if injection_result.blocked:
+            raise ValueError(injection_result.reason)
+
+        toxicity_result = self.toxicity_guard.check_fields(request_fields)
+        if toxicity_result.flagged:
+            raise ValueError(toxicity_result.reason)
+
         user_prompt = self.build_classification_prompt(
             request_fields,
             passages,
         )
 
-        return self.model.generate(
+        model_output = self.model.generate(
             system_prompt=CLASSIFICATION_SYSTEM_PROMPT,
             user_prompt=user_prompt,
         )
+
+        output_result = self.output_filter.check(model_output)
+        if not output_result.allowed:
+            raise ValueError(output_result.reason)
+
+        toxicity_result = self.toxicity_guard.check(model_output)
+        if toxicity_result.flagged:
+            raise ValueError(toxicity_result.reason)
+
+        return model_output
