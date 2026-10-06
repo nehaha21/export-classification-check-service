@@ -2,17 +2,22 @@
 API routes for the Export Classification Check Service.
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import JSONResponse
 
 from src.agents.classification_agent import ClassificationAgent
 from src.agents.graph import ClassificationGraph
 from src.agents.tools import ClassificationTools, RetrievedPassage
 from src.agents.verification_agent import VerificationAgent
 
+from .middleware import RateLimiter, ResponseCache
 from .schemas import ClassificationRequest, ClassificationResponse
 
 
 router = APIRouter()
+
+response_cache = ResponseCache(ttl_seconds=60.0)
+rate_limiter = RateLimiter(max_requests=10, window_seconds=60.0)
 
 
 class LoadTestRetrieval:
@@ -84,8 +89,30 @@ def build_load_test_graph() -> ClassificationGraph:
 )
 async def classify(
     request: ClassificationRequest,
-) -> ClassificationResponse:
+    http_request: Request,
+) -> JSONResponse:
     """Submit a product for classification."""
+
+    client_id = (
+        http_request.client.host
+        if http_request.client
+        else "unknown"
+    )
+
+    if not rate_limiter.allow(client_id):
+        raise HTTPException(
+            status_code=429,
+            detail="Rate limit exceeded. Please try again later.",
+        )
+
+    cache_key = str(request.model_dump())
+    cached_response = response_cache.get(cache_key)
+
+    if cached_response is not None:
+        return JSONResponse(
+            content=cached_response.model_dump(),
+            headers={"X-Cache": "HIT"},
+        )
 
     if request.additional_information.get("llm_stub") is True:
         graph = build_load_test_graph()
@@ -97,15 +124,29 @@ async def classify(
             }
         )
 
-        return ClassificationResponse(
+        response = ClassificationResponse(
             correlation_id="load-test",
             status=result.status,
             proposed_classification=result.proposed_answer,
             message="LLM stub load-test workflow.",
         )
 
-    return ClassificationResponse(
+        response_cache.set(cache_key, response)
+
+        return JSONResponse(
+            content=response.model_dump(),
+            headers={"X-Cache": "MISS"},
+        )
+
+    response = ClassificationResponse(
         correlation_id="pending",
         status="specialist-classification-review",
         message="Classification workflow is not connected yet.",
+    )
+
+    response_cache.set(cache_key, response)
+
+    return JSONResponse(
+        content=response.model_dump(),
+        headers={"X-Cache": "MISS"},
     )
