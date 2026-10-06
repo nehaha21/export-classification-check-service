@@ -2,14 +2,15 @@
 LangGraph orchestration for classification and verification.
 
 Flow:
+
     request
-      ↓
+        ↓
 classification agent
-      ↓
+        ↓
 verification agent
-      ↓
+        ↓
 verified result OR bounded retry
-      ↓
+        ↓
 final result / specialist review
 """
 
@@ -95,6 +96,7 @@ class ClassificationGraph:
 
         workflow.add_edge(START, "prepare_request")
         workflow.add_edge("prepare_request", "retrieve")
+
         workflow.add_conditional_edges(
             "retrieve",
             self._after_retrieval,
@@ -103,7 +105,9 @@ class ClassificationGraph:
                 "finalize": "finalize",
             },
         )
+
         workflow.add_edge("classify", "verify")
+
         workflow.add_conditional_edges(
             "verify",
             self._after_verification,
@@ -112,6 +116,7 @@ class ClassificationGraph:
                 "retry": "retry_retrieve",
             },
         )
+
         workflow.add_edge("retry_retrieve", "classify")
         workflow.add_edge("finalize", END)
 
@@ -130,7 +135,7 @@ class ClassificationGraph:
             "passages": [],
             "proposed_answer": None,
             "verification_result": None,
-            "status": SPECIALIST_CLASSIFICATION_REVIEW,
+            "status": "",
             "escalation_reason": None,
         }
 
@@ -259,7 +264,7 @@ class ClassificationGraph:
 
         return {
             **state,
-            "verification_result": verification_result,
+            "verification_result": verification_result or "",
         }
 
     def _retry_retrieve(
@@ -317,7 +322,7 @@ class ClassificationGraph:
         if state.get("status") == SEEK_PRODUCT_CLARIFICATION:
             return state
 
-        verification_result = state.get("verification_result", "")
+        verification_result = state.get("verification_result") or ""
 
         if self._verification_passed(verification_result):
             return {
@@ -356,9 +361,9 @@ class ClassificationGraph:
     ) -> str:
         """Choose finalization or bounded retry after verification."""
 
-        if self._verification_passed(
-            state.get("verification_result", ""),
-        ):
+        verification_result = state.get("verification_result") or ""
+
+        if self._verification_passed(verification_result):
             return "finalize"
 
         if state.get("attempts", 0) >= self.max_attempts:
