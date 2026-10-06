@@ -93,3 +93,22 @@ class MetricsRecorder:
         )
 
         return retried_runs / len(self.records)
+
+    def quality_summary(self) -> dict[str, float]:
+        """Return the current live-run quality summary."""
+        if not self.records:
+            return {
+                "success_rate": 0.0,
+                "retry_rate": 0.0,
+                "average_latency_seconds": 0.0,
+            }
+
+        average_latency = sum(
+            record.latency_seconds for record in self.records
+        ) / len(self.records)
+
+        return {
+            "success_rate": self.success_rate(),
+            "retry_rate": self.retry_rate(),
+            "average_latency_seconds": average_latency,
+        }
