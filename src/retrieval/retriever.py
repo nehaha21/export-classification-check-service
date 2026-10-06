@@ -2,6 +2,8 @@
 Retrieval orchestration for corpus search.
 """
 
+from typing import Any
+
 from src.retrieval.chunking import DocumentChunk
 from src.retrieval.embeddings import EmbeddingModel
 from src.retrieval.vector_store import FAISSVectorStore, VectorSearchResult
@@ -56,3 +58,23 @@ class Retriever:
             query,
             top_k=top_k,
         )
+
+    def lookup_clause(
+        self,
+        clause_id: str,
+    ) -> DocumentChunk | None:
+        """Look up an indexed chunk by its identifier."""
+
+        for chunk in self.vector_store.chunks:
+            if chunk.chunk_id == clause_id:
+                return chunk
+
+        return None
+
+    def get_request_fields(
+        self,
+        request: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Return the classification request fields needed by the agent."""
+
+        return dict(request)
