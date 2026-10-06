@@ -93,3 +93,29 @@ class CostTracker:
             record.estimated_cost
             for record in self.records
         )
+        
+    def cost_per_100_runs(self) -> float:
+        """Return estimated cost scaled to 100 classification runs."""
+
+        run_ids = {
+            record.correlation_id
+            for record in self.records
+        }
+
+        if not run_ids:
+            return 0.0
+
+        return (
+            self.total_estimated_cost() / len(run_ids)
+        ) * 100
+
+    def largest_cost_driver(self) -> CostRecord | None:
+        """Return the recorded model step with the highest estimated cost."""
+
+        if not self.records:
+            return None
+
+        return max(
+            self.records,
+            key=lambda record: record.estimated_cost,
+        )
