@@ -87,8 +87,30 @@ class ClassificationAgent:
         *,
         top_k: int = 5,
     ) -> list[RetrievedPassage]:
-        """Retrieve candidate tariff passages for a classification query."""
-        return self.tools.search_corpus(query, top_k=top_k)
+        """
+        Retrieve candidate tariff evidence for classification.
+
+        The retrieval query explicitly asks for:
+        - headings that name the article;
+        - material-based candidate headings;
+        - applicable section/chapter notes;
+        - GRI provisions relevant to resolving the candidates.
+
+        The retrieval implementation remains responsible for searching the corpus.
+        """
+
+        classification_query = (
+            f"{query}. "
+            "Find candidate tariff headings, especially headings that specifically "
+            "name the article. Also retrieve relevant material-based headings, "
+            "section notes, chapter notes, and General Rules for Interpretation "
+            "(GRI) provisions needed to compare the candidates."
+        )
+
+        return self.tools.search_corpus(
+            classification_query,
+            top_k=top_k,
+        )
 
     def build_classification_prompt(
         self,
