@@ -81,6 +81,35 @@ class ClassificationAgent:
         """
         return self.tools.get_request_fields(request)
 
+        def choose_tool(
+            self,
+            *,
+            request: dict[str, Any],
+            available_tools: list[str],
+        ) -> str:
+            """
+            Choose the next tool required by the classification workflow.
+
+            The agent chooses from the tools explicitly exposed by
+            ClassificationTools. The orchestration layer remains responsible for
+            enforcing the maximum number of tool calls and attempts.
+            """
+
+            request_fields = request.get("product_description") or request.get(
+                "article"
+            )
+
+            if not request_fields:
+                return "get_request_fields"
+
+            if "search_corpus" in available_tools:
+                return "search_corpus"
+
+            if "lookup_clause" in available_tools:
+                return "lookup_clause"
+
+            return "get_request_fields"
+
     def retrieve_candidates(
         self,
         query: str,
