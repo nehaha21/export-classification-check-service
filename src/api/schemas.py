@@ -7,15 +7,19 @@ classification workflow.
 
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
+
 
 
 class ClassificationRequest(BaseModel):
     """Product information submitted for classification."""
 
+    model_config = ConfigDict(extra="forbid")
+
     product_description: str = Field(
         ...,
         min_length=1,
+        max_length=5000,
         description="Description of the product to classify.",
     )
     materials: list[str] = Field(
@@ -24,6 +28,8 @@ class ClassificationRequest(BaseModel):
     )
     country_of_origin: str | None = Field(
         default=None,
+        min_length=2,
+        max_length=100,
         description="Country of origin when provided.",
     )
     additional_information: dict[str, Any] = Field(
